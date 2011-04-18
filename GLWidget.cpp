@@ -89,15 +89,17 @@ void GLWidget::initializeGL()
     _patch.SetData(1, 2, 0.0, 0.0, 1.0);
     _patch.SetData(1, 3, 0.0, 0.0, -2.0);
 
-//    _patch.SetData(2, 0, 1.0, -2.0, 0.0);
-//    _patch.SetData(2, 1, 1.0, -1.0, 2.0);
-//    _patch.SetData(2, 2, 1.0, 1.0, 2.0);
-//    _patch.SetData(2, 3, 1.0, 2.0, 0.0);
+    _patch.SetData(2, 0, 1.0, -2.0, 0.0);
+    _patch.SetData(2, 1, 1.0, -1.0, 2.0);
+    _patch.SetData(2, 2, 1.0, 1.0, 2.0);
+    _patch.SetData(2, 3, 1.0, 2.0, 0.0);
 
-//    _patch.SetData(3, 0, 2.0, -2.0, 0.0);
-//    _patch.SetData(3, 1, 2.0, -1.0, 0.0);
-//    _patch.SetData(3, 2, 2.0, 1.0, 0.0);
-//    _patch.SetData(3, 3, 2.0, 2.0, 0.0);
+    _patch.SetData(3, 0, 2.0, -2.0, 0.0);
+    _patch.SetData(3, 1, 2.0, -1.0, 0.0);
+    _patch.SetData(3, 2, 2.0, 1.0, 0.0);
+    _patch.SetData(3, 3, 2.0, 2.0, 0.0);
+
+    _patch.UpdateVertexBufferObjectsOfDerivatives();
 
     _before_interpolation = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
 
@@ -116,18 +118,18 @@ void GLWidget::initializeGL()
     v_knot_vector(2) = 2.0 / 3.0;
     v_knot_vector(3) = 1.0;
 
-    Matrix<DCoordinate3> data_points_to_interpolate(4,4);
-    for (GLuint row=0; row<4; ++row)
-        for (GLuint column = 0; column < 4; ++column)
-            _patch.GetData(row, column, data_points_to_interpolate(row, column));
+//    Matrix<DCoordinate3> data_points_to_interpolate(4,4);
+//    for (GLuint row=0; row<4; ++row)
+//        for (GLuint column = 0; column < 4; ++column)
+//            _patch.GetData(row, column, data_points_to_interpolate(row, column));
 
-    if (_patch.UpdateDataForInterpolation(u_knot_vector, v_knot_vector, data_points_to_interpolate))
-    {
-        _after_interpolation = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
+//    if (_patch.UpdateDataForInterpolation(u_knot_vector, v_knot_vector, data_points_to_interpolate))
+//    {
+//        _after_interpolation = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
 
-        if (_after_interpolation)
-            _after_interpolation->UpdateVertexBufferObjects();
-    }
+//        if (_after_interpolation)
+//            _after_interpolation->UpdateVertexBufferObjects();
+//    }
 
     _dl = 0;
     _dl = new DirectionalLight(GL_LIGHT0, HCoordinate3(0,0,1,0), Color4(0.4,0.4,0.4,1), Color4(0.8,0.8,0.8,1), Color4(0,0,1,1));
@@ -161,6 +163,7 @@ void GLWidget::paintGL()
         {
             MatFBRuby.Apply();
             _before_interpolation->Render();
+            _patch.RenderDerivatives();
         }
 
         if (_after_interpolation)

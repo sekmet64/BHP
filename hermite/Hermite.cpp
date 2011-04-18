@@ -1,8 +1,8 @@
-#include "../hermite/Hermite.h"
+#include "Hermite.h"
 
 using namespace cagd;
 
-HermitePatch::HermitePatch():TensorProductSurface3(0.0, 1.0, 0.0, 1.0, 4, 4)
+HermitePatch::HermitePatch() : TensorProductSurface3(0.0, 1.0, 0.0, 1.0, 4, 4)
 {
 }
 
@@ -102,6 +102,104 @@ GLboolean HermitePatch::RenderData(GLenum render_mode) const
 
 GLboolean HermitePatch::UpdateVertexBufferObjectsOfData(GLenum usage_flag)
 {
+    return GL_TRUE;
+}
+
+GLvoid HermitePatch::DeleteVertexBufferObjectsOfDerivatives()
+{
+    if (_vbo_derivative_u)
+    {
+        glDeleteBuffers(8, &_vbo_derivative_u);
+        _vbo_derivative_u = 0;
+    }
+}
+
+GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
+{
+    DeleteVertexBufferObjectsOfDerivatives();
+
+    glGenBuffers(8, &_vbo_derivative_u);
+
+    if (!_vbo_derivative_u)
+    {
+        DeleteVertexBufferObjectsOfDerivatives();
+        return GL_FALSE;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8 * 3, 0, GL_STATIC_DRAW);
+
+    GLfloat *coordinate = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+    if (!coordinate)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        DeleteVertexBufferObjectsOfDerivatives();
+        return GL_FALSE;
+    }
+
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = _data(0, 0)[i]; ++coordinate;
+        *coordinate = _data(0, 2)[i]; ++coordinate;
+    }
+
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = _data(0, 1)[i]; ++coordinate;
+        *coordinate = _data(0, 3)[i]; ++coordinate;
+    }
+
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = _data(1, 0)[i]; ++coordinate;
+        *coordinate = _data(1, 2)[i]; ++coordinate;
+    }
+
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = _data(1, 1)[i]; ++coordinate;
+        *coordinate = _data(1, 3)[i]; ++coordinate;
+    }
+
+    if (!glUnmapBuffer(GL_ARRAY_BUFFER))
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        DeleteVertexBufferObjectsOfDerivatives();
+        return GL_FALSE;
+    }
+
+    return GL_TRUE;
+}
+
+GLboolean HermitePatch::RenderDerivatives()
+{
+    //GLdouble x, y, z;
+
+//    glBegin(GL_LINES);
+
+//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
+//        glVertex3f(_data(2, 0).x(), _data(2, 0).y(), _data(2, 0).z());
+
+//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
+//        glVertex3f(_data(0,2).x(), _data(0,2).y(), _data(0,2).z());
+
+//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
+//        glVertex3f(_data(2,2).x(), _data(2,2).y(), _data(2,2).z());
+
+
+//    glEnd();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
+
+            glVertexPointer(3, GL_FLAT, 0, (const GLvoid *)0);
+
+            glDrawArrays(GL_LINES, 0, 8);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
     return GL_TRUE;
 }
 

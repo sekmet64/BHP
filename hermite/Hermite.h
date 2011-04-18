@@ -6,6 +6,10 @@ namespace cagd
 {
     class HermitePatch: public TensorProductSurface3
     {
+    private:
+        GLuint  _vbo_derivative_u;
+        //GLuint  _vbo_derivative_v;
+        //GLuint  _vbo_derivative_t;
     public:
         HermitePatch();
 
@@ -16,5 +20,9 @@ namespace cagd
         GLvoid    DeleteVertexBufferObjectsOfData();
         GLboolean RenderData(GLenum render_mode = GL_LINE_STRIP) const;
         GLboolean UpdateVertexBufferObjectsOfData(GLenum usage_flag = GL_STATIC_DRAW) ;
+
+        GLvoid    DeleteVertexBufferObjectsOfDerivatives();
+        GLboolean UpdateVertexBufferObjectsOfDerivatives();
+        GLboolean RenderDerivatives();
     };
 }
