@@ -174,31 +174,31 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 
 GLboolean HermitePatch::RenderDerivatives()
 {
-    //GLdouble x, y, z;
+    GLdouble x, y, z;
 
-//    glBegin(GL_LINES);
+    glBegin(GL_LINES);
 
-//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
-//        glVertex3f(_data(2, 0).x(), _data(2, 0).y(), _data(2, 0).z());
+        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
+        glVertex3f(_data(2, 0).x(), _data(2, 0).y(), _data(2, 0).z());
 
-//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
-//        glVertex3f(_data(0,2).x(), _data(0,2).y(), _data(0,2).z());
+        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
+        glVertex3f(_data(0,2).x(), _data(0,2).y(), _data(0,2).z());
 
-//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
-//        glVertex3f(_data(2,2).x(), _data(2,2).y(), _data(2,2).z());
+        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
+        glVertex3f(_data(2,2).x(), _data(2,2).y(), _data(2,2).z());
 
 
-//    glEnd();
+    glEnd();
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
+//    glEnableClientState(GL_VERTEX_ARRAY);
+//        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
 
-            glVertexPointer(3, GL_FLAT, 0, (const GLvoid *)0);
+//            glVertexPointer(3, GL_FLAT, 0, (const GLvoid *)0);
 
-            glDrawArrays(GL_LINES, 0, 8);
+//            glDrawArrays(GL_LINES, 0, 8);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDisableClientState(GL_VERTEX_ARRAY);
+//        glBindBuffer(GL_ARRAY_BUFFER, 0);
+//    glDisableClientState(GL_VERTEX_ARRAY);
 
     return GL_TRUE;
 }
