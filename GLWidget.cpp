@@ -163,19 +163,21 @@ void GLWidget::paintGL()
         {
             MatFBRuby.Apply();
             _before_interpolation->Render();
+            glDisable(GL_LIGHTING);
             _patch.RenderDerivatives();
+            glEnable(GL_LIGHTING);
         }
 
-        if (_after_interpolation)
-        {
-            glEnable(GL_BLEND);
-            glDepthMask(GL_FALSE);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-               MatFBTurquoise.Apply();
-              //_after_interpolation->Render();
-            glDepthMask(GL_TRUE);
-            glDisable(GL_BLEND);
-        }
+//        if (_after_interpolation)
+//        {
+//            glEnable(GL_BLEND);
+//            glDepthMask(GL_FALSE);
+//            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+//               MatFBTurquoise.Apply();
+//              //_after_interpolation->Render();
+//            glDepthMask(GL_TRUE);
+//            glDisable(GL_BLEND);
+//        }
 
     // pops the current matrix stack, replacing the current matrix with the one below it on the stack,
     // i.e., the original model view matrix is restored
@@ -271,5 +273,4 @@ void GLWidget::set_trans_z(double value)
         updateGL();
     }
 }
-
 

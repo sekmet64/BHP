@@ -109,7 +109,7 @@ GLvoid HermitePatch::DeleteVertexBufferObjectsOfDerivatives()
 {
     if (_vbo_derivative_u)
     {
-        glDeleteBuffers(8, &_vbo_derivative_u);
+        glDeleteBuffers(1, &_vbo_derivative_u);
         _vbo_derivative_u = 0;
     }
 }
@@ -118,7 +118,7 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 {
     DeleteVertexBufferObjectsOfDerivatives();
 
-    glGenBuffers(8, &_vbo_derivative_u);
+    glGenBuffers(1, &_vbo_derivative_u);
 
     if (!_vbo_derivative_u)
     {
@@ -140,26 +140,40 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 
     for (GLint i = 0; i < 3; ++i)
     {
-        *coordinate = _data(0, 0)[i]; ++coordinate;
-        *coordinate = _data(0, 2)[i]; ++coordinate;
+        *coordinate = (GLfloat)_data(0, 0)[i]; ++coordinate;
     }
 
     for (GLint i = 0; i < 3; ++i)
     {
-        *coordinate = _data(0, 1)[i]; ++coordinate;
-        *coordinate = _data(0, 3)[i]; ++coordinate;
+        *coordinate = (GLfloat)(_data(0,0) + _data(0, 2))[i]; ++coordinate;
     }
 
     for (GLint i = 0; i < 3; ++i)
     {
-        *coordinate = _data(1, 0)[i]; ++coordinate;
-        *coordinate = _data(1, 2)[i]; ++coordinate;
+        *coordinate = (GLfloat)_data(0, 1)[i]; ++coordinate;
+    }
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = (GLfloat)(_data(0,1) + _data(0, 3))[i]; ++coordinate;
     }
 
     for (GLint i = 0; i < 3; ++i)
     {
-        *coordinate = _data(1, 1)[i]; ++coordinate;
-        *coordinate = _data(1, 3)[i]; ++coordinate;
+        *coordinate = (GLfloat)_data(1, 0)[i]; ++coordinate;
+    }
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = (GLfloat)(_data(1,0) + _data(1, 2))[i]; ++coordinate;
+    }
+
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = (GLfloat)_data(1, 1)[i]; ++coordinate;
+    }
+
+    for (GLint i = 0; i < 3; ++i)
+    {
+        *coordinate = (GLfloat)(_data(1,0) + _data(1, 3))[i]; ++coordinate;
     }
 
     if (!glUnmapBuffer(GL_ARRAY_BUFFER))
@@ -174,26 +188,11 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 
 GLboolean HermitePatch::RenderDerivatives()
 {
-    //GLdouble x, y, z;
-
-//    glBegin(GL_LINES);
-
-//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
-//        glVertex3f(_data(2, 0).x(), _data(2, 0).y(), _data(2, 0).z());
-
-//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
-//        glVertex3f(_data(0,2).x(), _data(0,2).y(), _data(0,2).z());
-
-//        glVertex3f(_data(0,0).x(), _data(0,0).y(), _data(0,0).z());
-//        glVertex3f(_data(2,2).x(), _data(2,2).y(), _data(2,2).z());
-
-
-//    glEnd();
-
+//GL_COLOR_ARRAY
     glEnableClientState(GL_VERTEX_ARRAY);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
 
-            glVertexPointer(3, GL_FLAT, 0, (const GLvoid *)0);
+            glVertexPointer(3, GL_FLOAT, 0, (const GLvoid *)0);
 
             glDrawArrays(GL_LINES, 0, 8);
 
@@ -203,4 +202,10 @@ GLboolean HermitePatch::RenderDerivatives()
     return GL_TRUE;
 }
 
+
+HermitePatch::~HermitePatch()
+{
+    //DeleteVertexBufferObjectsOfData();
+    DeleteVertexBufferObjectsOfDerivatives();
+}
 

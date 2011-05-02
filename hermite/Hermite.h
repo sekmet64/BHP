@@ -24,5 +24,7 @@ namespace cagd
         GLvoid    DeleteVertexBufferObjectsOfDerivatives();
         GLboolean UpdateVertexBufferObjectsOfDerivatives();
         GLboolean RenderDerivatives();
+
+        ~HermitePatch();
     };
 }
