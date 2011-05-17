@@ -234,6 +234,7 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 
 GLboolean HermitePatch::RenderDerivatives()
 {
+
 //GL_COLOR_ARRAY
 
 
@@ -255,6 +256,7 @@ GLboolean HermitePatch::RenderDerivatives()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
+
 
     glBegin(GL_POINTS);
         glColor3f(0.45f, 0.82f, 0.09f);
@@ -283,7 +285,7 @@ GLboolean HermitePatch::RenderDerivatives()
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
-
+	
     return GL_TRUE;
 }
 
