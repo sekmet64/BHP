@@ -14,9 +14,6 @@ class GLWidget: public QGLWidget
     Q_OBJECT
 
 private:
-    // specifies the properties of the rendering window
-    QGLFormat   _format;
-
     // variables defining the projection matrix
     float       _aspect;            // aspect ratio of the rendering window
     float       _fovy;              // field of view in direction y
@@ -34,6 +31,8 @@ private:
 
     cagd::TriangulatedMesh3 *_before_interpolation, *_after_interpolation;
     cagd::DirectionalLight *_dl;
+
+    bool    _show_derivatives;
 
 public:
     // special and default constructor
@@ -56,4 +55,6 @@ public slots:
     void set_trans_x(double value);
     void set_trans_y(double value);
     void set_trans_z(double value);
+
+    void toggle_derivatives(bool enabled);
 };

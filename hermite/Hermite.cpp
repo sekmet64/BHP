@@ -107,10 +107,16 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfData(GLenum usage_flag)
 
 GLvoid HermitePatch::DeleteVertexBufferObjectsOfDerivatives()
 {
-    if (_vbo_derivative_u)
+    if (_vbo_derivatives)
     {
-        glDeleteBuffers(1, &_vbo_derivative_u);
-        _vbo_derivative_u = 0;
+        glDeleteBuffers(1, &_vbo_derivatives);
+        _vbo_derivatives = 0;
+    }
+
+    if (_ibo_derivatives)
+    {
+        glDeleteBuffers(1, &_ibo_derivatives);
+        _ibo_derivatives = 0;
     }
 }
 
@@ -118,16 +124,16 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 {
     DeleteVertexBufferObjectsOfDerivatives();
 
-    glGenBuffers(1, &_vbo_derivative_u);
+    glGenBuffers(1, &_vbo_derivatives);
 
-    if (!_vbo_derivative_u)
+    if (!_vbo_derivatives)
     {
         DeleteVertexBufferObjectsOfDerivatives();
         return GL_FALSE;
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 8 * 3, 0, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16 * 3, 0, GL_STATIC_DRAW);
 
     GLfloat *coordinate = (GLfloat*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 
@@ -138,43 +144,31 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
         return GL_FALSE;
     }
 
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)_data(0, 0)[i]; ++coordinate;
-    }
+    // corner points
+    push3f(coordinate, _data(0, 0));
+    push3f(coordinate, _data(0, 1));
+    push3f(coordinate, _data(1, 0));
+    push3f(coordinate, _data(1, 1));
 
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)(_data(0,0) + _data(0, 2))[i]; ++coordinate;
-    }
 
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)_data(0, 1)[i]; ++coordinate;
-    }
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)(_data(0,1) + _data(0, 3))[i]; ++coordinate;
-    }
+    // first order derivatives in v direction
+    push3f(coordinate, _data(0, 0) + _data(0, 2));
+    push3f(coordinate, _data(0, 1) + _data(0, 3));
+    push3f(coordinate, _data(1, 0) + _data(1, 2));
+    push3f(coordinate, _data(1, 1) + _data(1, 3));
 
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)_data(1, 0)[i]; ++coordinate;
-    }
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)(_data(1,0) + _data(1, 2))[i]; ++coordinate;
-    }
+    // first order derivatives in u direction
+    push3f(coordinate, _data(0, 0) + _data(2, 0));
+    push3f(coordinate, _data(0, 1) + _data(2, 1));
+    push3f(coordinate, _data(1, 0) + _data(3, 0));
+    push3f(coordinate, _data(1, 1) + _data(3, 1));
 
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)_data(1, 1)[i]; ++coordinate;
-    }
+    // twist vectors
+    push3f(coordinate, _data(0, 0) + _data(2, 2));
+    push3f(coordinate, _data(0, 1) + _data(2, 3));
+    push3f(coordinate, _data(1, 0) + _data(3, 2));
+    push3f(coordinate, _data(1, 1) + _data(3, 3));
 
-    for (GLint i = 0; i < 3; ++i)
-    {
-        *coordinate = (GLfloat)(_data(1,0) + _data(1, 3))[i]; ++coordinate;
-    }
 
     if (!glUnmapBuffer(GL_ARRAY_BUFFER))
     {
@@ -183,19 +177,110 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
         return GL_FALSE;
     }
 
+    // index buffer
+
+    glGenBuffers(1, &_ibo_derivatives);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_derivatives);
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLushort) * 24, 0,
+        GL_STATIC_DRAW);
+
+    GLushort *ind = (GLushort*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+
+    // v
+    push1us(ind, 0);
+    push1us(ind, 4);
+
+    push1us(ind, 1);
+    push1us(ind, 5);
+
+    push1us(ind, 2);
+    push1us(ind, 6);
+
+    push1us(ind, 3);
+    push1us(ind, 7);
+
+    // u
+    push1us(ind, 0);
+    push1us(ind, 8);
+
+    push1us(ind, 1);
+    push1us(ind, 9);
+
+    push1us(ind, 2);
+    push1us(ind, 10);
+
+    push1us(ind, 3);
+    push1us(ind, 11);
+
+    // t
+    push1us(ind, 0);
+    push1us(ind, 12);
+
+    push1us(ind, 1);
+    push1us(ind, 13);
+
+    push1us(ind, 2);
+    push1us(ind, 14);
+
+    push1us(ind, 3);
+    push1us(ind, 15);
+
+    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
     return GL_TRUE;
 }
 
 GLboolean HermitePatch::RenderDerivatives()
 {
 //GL_COLOR_ARRAY
-    glEnableClientState(GL_VERTEX_ARRAY);
-        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivative_u);
 
+
+    glBegin(GL_POINTS);
+        glColor3f(0.94f, 0.16f, 0.16f);
+//        glPointSize(7.0f);
+
+//        DCoordinate3 c = _data(0, 0) + _data(0, 2);
+//        glVertex3f(c.x(), c.y(), c.z());
+
+    glEnd();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_derivatives);
             glVertexPointer(3, GL_FLOAT, 0, (const GLvoid *)0);
 
-            glDrawArrays(GL_LINES, 0, 8);
+            glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
 
+    glBegin(GL_POINTS);
+        glColor3f(0.45f, 0.82f, 0.09f);
+    glEnd();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_derivatives);
+            glVertexPointer(3, GL_FLOAT, 0, (const GLvoid *)0);
+
+            glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, (char *)NULL + 8 * sizeof(GLushort));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    glBegin(GL_POINTS);
+        glColor3f(1.0f, 1.0f, 1.0f);
+    glEnd();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+        glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_derivatives);
+            glVertexPointer(3, GL_FLOAT, 0, (const GLvoid *)0);
+
+            glDrawElements(GL_LINES, 8, GL_UNSIGNED_SHORT, (char *)NULL + 16 * sizeof(GLushort));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
 
@@ -209,3 +294,16 @@ HermitePatch::~HermitePatch()
     DeleteVertexBufferObjectsOfDerivatives();
 }
 
+void HermitePatch::push3f(GLfloat *&coordinate, const DCoordinate3 &data)
+{
+    coordinate[0] = data.x();
+    coordinate[1] = data.y();
+    coordinate[2] = data.z();
+    coordinate += 3;
+}
+
+void HermitePatch::push1us(GLushort *&coordinate, const GLushort data)
+{
+    *coordinate = data;
+    ++coordinate;
+}

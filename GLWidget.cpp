@@ -10,7 +10,7 @@ using namespace std;
 //--------------------------------
 GLWidget::GLWidget(QWidget *parent) :
     QGLWidget(QGLFormat(QGL::Rgba | QGL::DepthBuffer | QGL::DoubleBuffer),
-        parent)
+        parent), _show_derivatives(false)
 {
 }
 
@@ -23,11 +23,11 @@ GLWidget::~GLWidget()
         delete _before_interpolation;
         _before_interpolation = 0;
     }
-    if (_after_interpolation)
-    {
-        delete _after_interpolation;
-        _after_interpolation = 0;
-    }
+//    if (_after_interpolation)
+//    {
+//        delete _after_interpolation;
+//        _after_interpolation = 0;
+//    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -57,12 +57,12 @@ void GLWidget::initializeGL()
 
     gluLookAt(_eye[0], _eye[1], _eye[2], _center[0], _center[1], _center[2], _up[0], _up[1], _up[2]);
 
-    glEnable(GL_POINT_SMOOTH);
-    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glEnable(GL_POLYGON_SMOOTH);
-    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+//    glEnable(GL_POINT_SMOOTH);
+//    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+//    glEnable(GL_LINE_SMOOTH);
+//    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+//    glEnable(GL_POLYGON_SMOOTH);
+//    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
@@ -163,9 +163,14 @@ void GLWidget::paintGL()
         {
             MatFBRuby.Apply();
             _before_interpolation->Render();
-            glDisable(GL_LIGHTING);
-            _patch.RenderDerivatives();
-            glEnable(GL_LIGHTING);
+
+
+            if (_show_derivatives)
+            {
+                glDisable(GL_LIGHTING);
+                _patch.RenderDerivatives();
+                glEnable(GL_LIGHTING);
+            }
         }
 
 //        if (_after_interpolation)
@@ -274,3 +279,8 @@ void GLWidget::set_trans_z(double value)
     }
 }
 
+void GLWidget::toggle_derivatives(bool enabled)
+{
+    _show_derivatives = enabled;
+    repaint();
+}

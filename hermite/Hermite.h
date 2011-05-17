@@ -7,9 +7,14 @@ namespace cagd
     class HermitePatch: public TensorProductSurface3
     {
     private:
-        GLuint  _vbo_derivative_u;
-        //GLuint  _vbo_derivative_v;
-        //GLuint  _vbo_derivative_t;
+        GLuint  _vbo_derivatives;
+        GLuint  _ibo_derivatives;
+
+        // copy 3 float to a pointer location
+        void    push3f(GLfloat *&coordinate, const DCoordinate3 &data);
+
+        // copy 1 unsigned short int to a pointer location
+        void    push1us(GLushort *&coordinate, const GLushort data);
     public:
         HermitePatch();
 
