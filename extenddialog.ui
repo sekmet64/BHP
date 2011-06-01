@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ExtendDialog</class>
+ <widget class="QDialog" name="ExtendDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>376</width>
+    <height>211</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Extend the patch to a direction</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>170</y>
+     <width>341</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>341</width>
+     <height>131</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QLineEdit" name="e_00"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="QLineEdit" name="e_01"/>
+    </item>
+    <item row="0" column="2">
+     <widget class="QLineEdit" name="e_02"/>
+    </item>
+    <item row="0" column="3">
+     <widget class="QLineEdit" name="e_03"/>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLineEdit" name="e_10"/>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLineEdit" name="e_11"/>
+    </item>
+    <item row="1" column="2">
+     <widget class="QLineEdit" name="e_12"/>
+    </item>
+    <item row="1" column="3">
+     <widget class="QLineEdit" name="e_13"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLineEdit" name="e_20"/>
+    </item>
+    <item row="2" column="1">
+     <widget class="QLineEdit" name="e_21"/>
+    </item>
+    <item row="2" column="2">
+     <widget class="QLineEdit" name="e_22"/>
+    </item>
+    <item row="2" column="3">
+     <widget class="QLineEdit" name="e_23"/>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLineEdit" name="e_30"/>
+    </item>
+    <item row="3" column="1">
+     <widget class="QLineEdit" name="e_31"/>
+    </item>
+    <item row="3" column="2">
+     <widget class="QLineEdit" name="e_32"/>
+    </item>
+    <item row="3" column="3">
+     <widget class="QLineEdit" name="e_33"/>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>ExtendDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>ExtendDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

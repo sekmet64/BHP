@@ -309,3 +309,164 @@ void HermitePatch::push1us(GLushort *&coordinate, const GLushort data)
     *coordinate = data;
     ++coordinate;
 }
+
+void HermitePatch::ExtendTL(Matrix<DCoordinate3> data)
+{
+    _tl = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _tl->SetData(i, j, data(i,j));
+
+}
+
+void HermitePatch::ExtendT(Matrix<DCoordinate3> data)
+{
+    _t = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _t->SetData(i, j, data(i,j));
+}
+
+void HermitePatch::ExtendTR(Matrix<DCoordinate3> data)
+{
+    _tr = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _tr->SetData(i, j, data(i,j));
+}
+
+void HermitePatch::ExtendR(Matrix<DCoordinate3> data)
+{
+    _r = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _r->SetData(i, j, data(i,j));
+}
+
+void HermitePatch::ExtendBR(Matrix<DCoordinate3> data)
+{
+    _br = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _br->SetData(i, j, data(i,j));
+}
+
+void HermitePatch::ExtendB(Matrix<DCoordinate3> data)
+{
+    _b = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _b->SetData(i, j, data(i,j));
+}
+
+void HermitePatch::ExtendBL(Matrix<DCoordinate3> data)
+{
+    _bl = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _bl->SetData(i, j, data(i,j));
+}
+
+void HermitePatch::ExtendL(Matrix<DCoordinate3> data)
+{
+    _l = new HermitePatch;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            _l->SetData(i, j, data(i,j));
+}
+
+HermitePatch* HermitePatch::GetTL()
+{
+    return _tl;
+}
+
+HermitePatch* HermitePatch::GetT()
+{
+    return _t;
+}
+
+HermitePatch* HermitePatch::GetTR()
+{
+    return _tr;
+}
+
+HermitePatch* HermitePatch::GetR()
+{
+    return _r;
+}
+
+HermitePatch* HermitePatch::GetBR()
+{
+    return _br;
+}
+
+HermitePatch* HermitePatch::GetB()
+{
+    return _b;
+}
+
+HermitePatch* HermitePatch::GetBL()
+{
+    return _bl;
+}
+
+HermitePatch* HermitePatch::GetL()
+{
+    return _l;
+}
+
+void HermitePatch::DeleteTL()
+{
+    _tl->DeleteVertexBufferObjectsOfDerivatives();
+    _tl->DeleteVertexBufferObjectsOfData();
+    delete _tl;
+}
+
+void HermitePatch::DeleteT()
+{
+    _t->DeleteVertexBufferObjectsOfDerivatives();
+    _t->DeleteVertexBufferObjectsOfData();
+    delete _t;
+}
+
+void HermitePatch::DeleteTR()
+{
+    _tr->DeleteVertexBufferObjectsOfDerivatives();
+    _tr->DeleteVertexBufferObjectsOfData();
+    delete _tr;
+}
+
+void HermitePatch::DeleteR()
+{
+    _r->DeleteVertexBufferObjectsOfDerivatives();
+    _r->DeleteVertexBufferObjectsOfData();
+    delete _r;
+}
+
+void HermitePatch::DeleteBR()
+{
+    _br->DeleteVertexBufferObjectsOfDerivatives();
+    _br->DeleteVertexBufferObjectsOfData();
+    delete _br;
+}
+
+void HermitePatch::DeleteB()
+{
+    _b->DeleteVertexBufferObjectsOfDerivatives();
+    _b->DeleteVertexBufferObjectsOfData();
+    delete _b;
+}
+
+void HermitePatch::DeleteBL()
+{
+    _bl->DeleteVertexBufferObjectsOfDerivatives();
+    _bl->DeleteVertexBufferObjectsOfData();
+    delete _bl;
+}
+
+void HermitePatch::DeleteL()
+{
+    _l->DeleteVertexBufferObjectsOfDerivatives();
+    _l->DeleteVertexBufferObjectsOfData();
+    delete _l;
+}

@@ -11,11 +11,13 @@ SOURCES += Core/GenericCurves3.cpp \
     MainWindow.cpp \
     Parametric/ParametricCurves3.cpp \
     SideWidget.cpp \
-    Test/TestFunctions.cpp
+    Test/TestFunctions.cpp \
+    extenddialog.cpp
 
 FORMS += \
     SideWidget.ui \
-    MainWindow.ui
+    MainWindow.ui \
+    extenddialog.ui
 
 HEADERS += Core/Colors4.h \
     Core/DCoordinates3.h \
@@ -36,7 +38,8 @@ HEADERS += Core/Colors4.h \
     MainWindow.h \
     Parametric/ParametricCurves3.h \
     SideWidget.h \
-    Test/TestFunctions.h
+    Test/TestFunctions.h \
+    extenddialog.h
 
 INCLUDEPATH += Dependencies/Include
 

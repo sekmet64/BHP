@@ -53,6 +53,17 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
     connect(_side_widget->trans_z_spin_box, SIGNAL(valueChanged(double)), _gl_widget, SLOT(set_trans_z(double)));
     connect(_side_widget->derivativesCheck, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_derivatives(bool)));
 
+    connect(_side_widget->tl_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_tl(bool)));
+    connect(_side_widget->t_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_t(bool)));
+    connect(_side_widget->tr_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_tr(bool)));
+    connect(_side_widget->r_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_r(bool)));
+
+    connect(_side_widget->br_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_br(bool)));
+    connect(_side_widget->b_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_b(bool)));
+    connect(_side_widget->bl_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_bl(bool)));
+    connect(_side_widget->l_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_l(bool)));
+
+
 }
 
 //--------------------------------

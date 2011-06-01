@@ -30,9 +30,31 @@ private:
     cagd::HermitePatch _patch;
 
     cagd::TriangulatedMesh3 *_before_interpolation, *_after_interpolation;
+
+
     cagd::DirectionalLight *_dl;
 
     bool    _show_derivatives;
+
+    cagd::TriangulatedMesh3 *_tl_mesh;
+    cagd::TriangulatedMesh3 *_t_mesh;
+    cagd::TriangulatedMesh3 *_tr_mesh;
+    cagd::TriangulatedMesh3 *_r_mesh;
+
+    cagd::TriangulatedMesh3 *_br_mesh;
+    cagd::TriangulatedMesh3 *_b_mesh;
+    cagd::TriangulatedMesh3 *_bl_mesh;
+    cagd::TriangulatedMesh3 *_l_mesh;
+
+    bool    _tl_enabled;
+    bool    _t_enabled;
+    bool    _tr_enabled;
+    bool    _r_enabled;
+
+    bool    _br_enabled;
+    bool    _b_enabled;
+    bool    _bl_enabled;
+    bool    _l_enabled;
 
 public:
     // special and default constructor
@@ -57,4 +79,15 @@ public slots:
     void set_trans_z(double value);
 
     void toggle_derivatives(bool enabled);
+
+    void toggle_tl(bool checked);
+    void toggle_t(bool checked);
+    void toggle_tr(bool checked);
+    void toggle_r(bool checked);
+
+    void toggle_br(bool checked);
+    void toggle_b(bool checked);
+    void toggle_bl(bool checked);
+    void toggle_l(bool checked);
+
 };

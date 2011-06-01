@@ -1,6 +1,7 @@
 #include "GLWidget.h"
 #include <iostream>
 #include "core/Materials.h"
+#include "extenddialog.h"
 
 using namespace cagd;
 using namespace std;
@@ -10,7 +11,16 @@ using namespace std;
 //--------------------------------
 GLWidget::GLWidget(QWidget *parent) :
     QGLWidget(QGLFormat(QGL::Rgba | QGL::DepthBuffer | QGL::DoubleBuffer),
-        parent), _show_derivatives(false)
+        parent), _show_derivatives(false),
+    _tl_enabled(false),
+    _t_enabled(false),
+    _tr_enabled(false),
+    _r_enabled(false),
+
+    _br_enabled(false),
+    _b_enabled(false),
+    _bl_enabled(false),
+    _l_enabled(false)
 {
 }
 
@@ -164,25 +174,69 @@ void GLWidget::paintGL()
             MatFBRuby.Apply();
             _before_interpolation->Render();
 
+            MatFBSilver.Apply();
+            if (_tl_enabled)
+            {
+                _tl_mesh->Render();
+            }
+            if (_t_enabled)
+            {
+                _t_mesh->Render();
+            }
+            if (_tr_enabled)
+            {
+                _tr_mesh->Render();
+            }
+            if (_r_enabled)
+            {
+                _r_mesh->Render();
+            }
+
+            if (_br_enabled)
+            {
+                _br_mesh->Render();
+            }
+            if (_b_enabled)
+            {
+                _b_mesh->Render();
+            }
+            if (_bl_enabled)
+            {
+                _bl_mesh->Render();
+            }
+            if (_l_enabled)
+            {
+                _l_mesh->Render();
+            }
 
             if (_show_derivatives)
             {
                 glDisable(GL_LIGHTING);
                 _patch.RenderDerivatives();
+
+                if (_tl_enabled)
+                    _patch.GetTL()->RenderDerivatives();
+                if (_t_enabled)
+                    _patch.GetT()->RenderDerivatives();
+                if (_tr_enabled)
+                    _patch.GetTR()->RenderDerivatives();
+                if (_r_enabled)
+                    _patch.GetR()->RenderDerivatives();
+
+                if (_br_enabled)
+                    _patch.GetBR()->RenderDerivatives();
+                if (_b_enabled)
+                    _patch.GetB()->RenderDerivatives();
+                if (_bl_enabled)
+                    _patch.GetBL()->RenderDerivatives();
+                if (_l_enabled)
+                    _patch.GetL()->RenderDerivatives();
+
                 glEnable(GL_LIGHTING);
             }
-        }
 
-//        if (_after_interpolation)
-//        {
-//            glEnable(GL_BLEND);
-//            glDepthMask(GL_FALSE);
-//            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-//               MatFBTurquoise.Apply();
-//              //_after_interpolation->Render();
-//            glDepthMask(GL_TRUE);
-//            glDisable(GL_BLEND);
-//        }
+
+        }
 
     // pops the current matrix stack, replacing the current matrix with the one below it on the stack,
     // i.e., the original model view matrix is restored
@@ -283,4 +337,540 @@ void GLWidget::toggle_derivatives(bool enabled)
 {
     _show_derivatives = enabled;
     repaint();
+}
+
+void GLWidget::toggle_tl(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+        _patch.GetData(0, 0, d_11);
+        _patch.GetData(0, 2, d_13);
+        _patch.GetData(2, 0, d_31);
+        _patch.GetData(2, 2, d_33);
+
+
+        if (_t_enabled)
+        {
+            HermitePatch *t = _patch.GetT();
+            t->GetData(0, 0, d_01);
+            t->GetData(0, 2, d_03);
+            t->GetData(2, 0, d_21);
+            t->GetData(2, 2, d_23);
+        }
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+
+        dialog->setup_tl(_l_enabled, _t_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendTL(m);
+
+            HermitePatch* tl = _patch.GetTL();
+
+            tl->UpdateVertexBufferObjectsOfDerivatives();
+            _tl_mesh = tl->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _tl_mesh->UpdateVertexBufferObjects();
+            _tl_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _tl_mesh->DeleteVertexBufferObjects();
+        delete _tl_mesh;
+        _patch.DeleteTL();
+        _tl_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_t(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+
+        _patch.GetData(0, 0, d_10);
+        _patch.GetData(0, 1, d_11);
+        _patch.GetData(0, 2, d_12);
+        _patch.GetData(0, 3, d_13);
+
+        _patch.GetData(2, 0, d_30);
+        _patch.GetData(2, 1, d_31);
+        _patch.GetData(2, 2, d_32);
+        _patch.GetData(2, 3, d_33);
+
+        if (_tl_enabled)
+        {
+            HermitePatch *tl = _patch.GetTL();
+            tl->GetData(0, 1, d_00);
+            tl->GetData(0, 3, d_02);
+            tl->GetData(2, 1, d_20);
+            tl->GetData(2, 3, d_22);
+        }
+
+        if (_tr_enabled)
+        {
+            HermitePatch *tr = _patch.GetTR();
+            tr->GetData(0, 0, d_01);
+            tr->GetData(0, 2, d_03);
+            tr->GetData(2, 0, d_21);
+            tr->GetData(2, 2, d_23);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_t(_tl_enabled, _tr_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendT(m);
+
+            HermitePatch* t = _patch.GetT();
+
+            t->UpdateVertexBufferObjectsOfDerivatives();
+            _t_mesh = t->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _t_mesh->UpdateVertexBufferObjects();
+            _t_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _t_mesh->DeleteVertexBufferObjects();
+        delete _t_mesh;
+        _patch.DeleteT();
+        _t_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_tr(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+
+        _patch.GetData(0, 1, d_10);
+        _patch.GetData(0, 3, d_12);
+        _patch.GetData(2, 1, d_30);
+        _patch.GetData(2, 3, d_32);
+
+        if (_t_enabled)
+        {
+            HermitePatch *t = _patch.GetT();
+            t->GetData(0, 1, d_00);
+            t->GetData(0, 3, d_02);
+            t->GetData(2, 1, d_20);
+            t->GetData(2, 3, d_22);
+        }
+
+        if (_r_enabled)
+        {
+            HermitePatch *r = _patch.GetR();
+            r->GetData(0, 1, d_11);
+            r->GetData(0, 3, d_13);
+            r->GetData(2, 1, d_31);
+            r->GetData(2, 3, d_33);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_tr(_t_enabled, _r_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendTR(m);
+
+            HermitePatch* tr = _patch.GetTR();
+
+            tr->UpdateVertexBufferObjectsOfDerivatives();
+            _tr_mesh = tr->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _tr_mesh->UpdateVertexBufferObjects();
+            _tr_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _tr_mesh->DeleteVertexBufferObjects();
+        delete _tr_mesh;
+        _patch.DeleteTR();
+        _tr_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_r(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+
+        _patch.GetData(0, 1, d_00);
+        _patch.GetData(0, 3, d_02);
+        _patch.GetData(2, 1, d_20);
+        _patch.GetData(2, 3, d_22);
+
+        _patch.GetData(1, 1, d_10);
+        _patch.GetData(1, 3, d_12);
+        _patch.GetData(3, 1, d_30);
+        _patch.GetData(3, 3, d_32);
+
+        if (_tr_enabled)
+        {
+            HermitePatch *tr = _patch.GetTR();
+            tr->GetData(1, 1, d_01);
+            tr->GetData(1, 3, d_03);
+            tr->GetData(3, 1, d_21);
+            tr->GetData(3, 3, d_23);
+        }
+
+        if (_br_enabled)
+        {
+            HermitePatch *br = _patch.GetBR();
+            br->GetData(0, 1, d_11);
+            br->GetData(0, 3, d_13);
+            br->GetData(2, 1, d_31);
+            br->GetData(2, 3, d_33);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_r(_tr_enabled, _br_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendR(m);
+
+            HermitePatch* r = _patch.GetR();
+
+            r->UpdateVertexBufferObjectsOfDerivatives();
+            _r_mesh = r->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _r_mesh->UpdateVertexBufferObjects();
+            _r_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _r_mesh->DeleteVertexBufferObjects();
+        delete _r_mesh;
+        _patch.DeleteR();
+        _r_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_br(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+
+        _patch.GetData(1, 1, d_00);
+        _patch.GetData(1, 3, d_02);
+        _patch.GetData(3, 1, d_20);
+        _patch.GetData(3, 3, d_22);
+
+        if (_r_enabled)
+        {
+            HermitePatch *r = _patch.GetR();
+            r->GetData(1, 1, d_01);
+            r->GetData(1, 3, d_03);
+            r->GetData(3, 1, d_21);
+            r->GetData(3, 3, d_23);
+        }
+
+        if (_b_enabled)
+        {
+            HermitePatch *b = _patch.GetB();
+            b->GetData(1, 1, d_10);
+            b->GetData(1, 3, d_12);
+            b->GetData(3, 1, d_30);
+            b->GetData(3, 3, d_32);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_br(_r_enabled, _b_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendBR(m);
+
+            HermitePatch* br = _patch.GetBR();
+
+            br->UpdateVertexBufferObjectsOfDerivatives();
+            _br_mesh = br->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _br_mesh->UpdateVertexBufferObjects();
+            _br_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _br_mesh->DeleteVertexBufferObjects();
+        delete _br_mesh;
+        _patch.DeleteBR();
+        _br_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_b(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+        _patch.GetData(1, 0, d_00);
+        _patch.GetData(1, 2, d_02);
+        _patch.GetData(3, 0, d_20);
+        _patch.GetData(3, 2, d_22);
+
+        _patch.GetData(1, 1, d_01);
+        _patch.GetData(1, 3, d_03);
+        _patch.GetData(3, 1, d_21);
+        _patch.GetData(3, 3, d_23);
+
+        if (_br_enabled)
+        {
+            HermitePatch *br = _patch.GetBR();
+            br->GetData(1, 0, d_11);
+            br->GetData(1, 2, d_13);
+            br->GetData(3, 0, d_31);
+            br->GetData(3, 2, d_33);
+        }
+
+        if (_bl_enabled)
+        {
+            HermitePatch *bl = _patch.GetBL();
+            bl->GetData(1, 1, d_10);
+            bl->GetData(1, 3, d_12);
+            bl->GetData(3, 1, d_30);
+            bl->GetData(3, 3, d_32);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_b(_br_enabled, _bl_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendB(m);
+
+            HermitePatch* b = _patch.GetB();
+
+            b->UpdateVertexBufferObjectsOfDerivatives();
+            _b_mesh = b->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _b_mesh->UpdateVertexBufferObjects();
+            _b_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _b_mesh->DeleteVertexBufferObjects();
+        delete _b_mesh;
+        _patch.DeleteB();
+        _b_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_bl(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+        _patch.GetData(1, 0, d_01);
+        _patch.GetData(1, 2, d_03);
+        _patch.GetData(3, 0, d_21);
+        _patch.GetData(3, 2, d_23);
+
+        if (_b_enabled)
+        {
+            HermitePatch *b = _patch.GetB();
+            b->GetData(1, 0, d_11);
+            b->GetData(1, 2, d_13);
+            b->GetData(3, 0, d_31);
+            b->GetData(3, 2, d_33);
+        }
+
+        if (_l_enabled)
+        {
+            HermitePatch *l = _patch.GetL();
+            l->GetData(1, 0, d_00);
+            l->GetData(1, 2, d_02);
+            l->GetData(3, 0, d_20);
+            l->GetData(3, 2, d_22);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_bl(_b_enabled, _l_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendBL(m);
+
+            HermitePatch* bl = _patch.GetBL();
+
+            bl->UpdateVertexBufferObjectsOfDerivatives();
+            _bl_mesh = bl->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _bl_mesh->UpdateVertexBufferObjects();
+            _bl_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _bl_mesh->DeleteVertexBufferObjects();
+        delete _bl_mesh;
+        _patch.DeleteBL();
+        _bl_enabled = false;
+        repaint();
+    }
+}
+
+void GLWidget::toggle_l(bool checked)
+{
+    if (checked)
+    {
+        DCoordinate3 d_00, d_01, d_02, d_03,
+                d_10, d_11, d_12, d_13,
+                d_20, d_21, d_22, d_23,
+                d_30, d_31, d_32, d_33;
+
+        _patch.GetData(0, 0, d_01);
+        _patch.GetData(0, 2, d_03);
+        _patch.GetData(2, 0, d_21);
+        _patch.GetData(2, 2, d_23);
+
+        _patch.GetData(1, 0, d_11);
+        _patch.GetData(1, 2, d_13);
+        _patch.GetData(3, 0, d_31);
+        _patch.GetData(3, 2, d_33);
+
+        if (_bl_enabled)
+        {
+            HermitePatch *bl = _patch.GetBL();
+            bl->GetData(0, 0, d_10);
+            bl->GetData(0, 2, d_12);
+            bl->GetData(2, 0, d_30);
+            bl->GetData(2, 2, d_32);
+        }
+
+        if (_tl_enabled)
+        {
+            HermitePatch *tl = _patch.GetTL();
+            tl->GetData(1, 0, d_00);
+            tl->GetData(1, 2, d_02);
+            tl->GetData(3, 0, d_20);
+            tl->GetData(3, 2, d_22);
+        }
+
+
+        ExtendDialog *dialog = new ExtendDialog(
+                    d_00, d_01, d_02, d_03,
+                    d_10, d_11, d_12, d_13,
+                    d_20, d_21, d_22, d_23,
+                    d_30, d_31, d_32, d_33);
+
+        dialog->setup_l(_bl_enabled, _tl_enabled);
+
+        if (dialog->exec() == QDialog::Accepted)
+        {
+            Matrix<DCoordinate3> m = dialog->getData();
+            _patch.ExtendL(m);
+
+            HermitePatch* l = _patch.GetL();
+
+            l->UpdateVertexBufferObjectsOfDerivatives();
+            _l_mesh = l->GenerateImage(30, 30, GL_STATIC_DRAW);
+            _l_mesh->UpdateVertexBufferObjects();
+            _l_enabled = true;
+            repaint();
+        }
+    }
+    else
+    {
+        _l_mesh->DeleteVertexBufferObjects();
+        delete _l_mesh;
+        _patch.DeleteL();
+        _l_enabled = false;
+        repaint();
+    }
 }
