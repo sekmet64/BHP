@@ -12,7 +12,9 @@ SOURCES += Core/GenericCurves3.cpp \
     Parametric/ParametricCurves3.cpp \
     SideWidget.cpp \
     Test/TestFunctions.cpp \
-    extenddialog.cpp
+    extenddialog.cpp \
+    Hermite/CubicHermiteIsoLine.cpp \
+    Shader/ShaderPrograms.cpp
 
 FORMS += \
     SideWidget.ui \
@@ -39,7 +41,9 @@ HEADERS += Core/Colors4.h \
     Parametric/ParametricCurves3.h \
     SideWidget.h \
     Test/TestFunctions.h \
-    extenddialog.h
+    extenddialog.h \
+    Hermite/CubicHermiteIsoLine.h \
+    Shader/ShaderPrograms.h
 
 INCLUDEPATH += Dependencies/Include
 

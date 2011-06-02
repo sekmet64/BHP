@@ -2,6 +2,8 @@
 #include <iostream>
 #include "core/Materials.h"
 #include "extenddialog.h"
+#include "Core/Exceptions.h"
+#include <QMessageBox>
 
 using namespace cagd;
 using namespace std;
@@ -20,24 +22,28 @@ GLWidget::GLWidget(QWidget *parent) :
     _br_enabled(false),
     _b_enabled(false),
     _bl_enabled(false),
-    _l_enabled(false)
+    _l_enabled(false),
+
+    _show_u_iso_lines(false),
+    _show_v_iso_lines(false),
+
+    _u_isoline_count(5),
+    _v_isoline_count(5),
+
+    _show_u_iso_derivates(false),
+    _show_v_iso_derivates(false),
+
+    _show_surface(true)
 {
 }
 
 GLWidget::~GLWidget()
-{
-    if (_dl)
-        delete _dl;
+{    
     if (_before_interpolation)
     {
         delete _before_interpolation;
         _before_interpolation = 0;
     }
-//    if (_after_interpolation)
-//    {
-//        delete _after_interpolation;
-//        _after_interpolation = 0;
-//    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -66,13 +72,6 @@ void GLWidget::initializeGL()
     _up[0] = _up[2] = 0.0, _up[1] = 1.0;
 
     gluLookAt(_eye[0], _eye[1], _eye[2], _center[0], _center[1], _center[2], _up[0], _up[1], _up[2]);
-
-//    glEnable(GL_POINT_SMOOTH);
-//    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-//    glEnable(GL_LINE_SMOOTH);
-//    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-//    glEnable(GL_POLYGON_SMOOTH);
-//    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
@@ -111,6 +110,17 @@ void GLWidget::initializeGL()
 
     _patch.UpdateVertexBufferObjectsOfDerivatives();
 
+	//initialize u_iso_lines
+
+
+
+    _patch.GenerateUIsoLines(_u_isoline_count, 30);
+
+    //initialize v_iso_lines
+
+
+
+    _patch.GenerateVIsoLines(_v_isoline_count, 30);
     _before_interpolation = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
 
     if (_before_interpolation)
@@ -141,12 +151,31 @@ void GLWidget::initializeGL()
 //            _after_interpolation->UpdateVertexBufferObjects();
 //    }
 
-    _dl = 0;
-    _dl = new DirectionalLight(GL_LIGHT0, HCoordinate3(0,0,1,0), Color4(0.4,0.4,0.4,1), Color4(0.8,0.8,0.8,1), Color4(0,0,1,1));
 
+	try
+    {
+        // directional ligth
+        if (!_shader.InstallShaders("Shaders/directional_light.vert",
+                                    "Shaders/directional_light.frag",
+                                    GL_TRUE))
+        {
+            QMessageBox::critical(this, "Shader error",
+                                  "Error installing shaders");
+        }
+	}
+	catch (Exception &e)
+	{
+	}
+
+
+
+    _dl = new DirectionalLight(GL_LIGHT0, HCoordinate3(0,0,1,0),
+                               Color4(0.4,0.4,0.4,1),
+                               Color4(0.8,0.8,0.8,1),
+                               Color4(0,0,1,1));
     glEnable(GL_LIGHTING);
     glEnable(GL_NORMALIZE);
-    _dl->Enable();
+    _shader.Enable(GL_TRUE);
 }
 
 //-----------------------
@@ -171,8 +200,11 @@ void GLWidget::paintGL()
 
         if (_before_interpolation)
         {
-            MatFBRuby.Apply();
-            _before_interpolation->Render();
+            if (_show_surface)
+            {
+                MatFBRuby.Apply();
+                _before_interpolation->Render();
+            }
 
             MatFBSilver.Apply();
             if (_tl_enabled)
@@ -208,7 +240,38 @@ void GLWidget::paintGL()
             {
                 _l_mesh->Render();
             }
+			//rendering u_iso_lines
+            if (_show_u_iso_lines)
+            {
+                _patch.RenderUIsoLines(0);
+                if (_tl_enabled)
+                {
 
+                    _patch.GetTL()->RenderUIsoLines(0);
+
+                }
+            }
+
+            if (_show_u_iso_derivates)
+            {
+                _patch.RenderUIsoLines(1);
+
+            }
+
+            //rendering v_iso_lines
+            if (_show_v_iso_lines)
+            {
+                _patch.RenderVIsoLines(0);
+                if (_tl_enabled)
+                {
+                    _patch.GetTL()->RenderVIsoLines(0);
+                }
+            }
+
+            if (_show_v_iso_derivates)
+                _patch.RenderVIsoLines(1);
+
+			// rendering derivatives
             if (_show_derivatives)
             {
                 glDisable(GL_LIGHTING);
@@ -382,6 +445,8 @@ void GLWidget::toggle_tl(bool checked)
             tl->UpdateVertexBufferObjectsOfDerivatives();
             _tl_mesh = tl->GenerateImage(30, 30, GL_STATIC_DRAW);
             _tl_mesh->UpdateVertexBufferObjects();
+            tl->GenerateUIsoLines(_u_isoline_count, 30);
+            tl->GenerateVIsoLines(_v_isoline_count, 30);
             _tl_enabled = true;
             repaint();
         }
@@ -873,4 +938,109 @@ void GLWidget::toggle_l(bool checked)
         _l_enabled = false;
         repaint();
     }
+}
+
+
+void GLWidget::toggle_iso_u(bool checked)
+{
+    _show_u_iso_lines = checked;
+    repaint();
+}
+
+void GLWidget::toggle_iso_v(bool checked)
+{
+    _show_v_iso_lines = checked;
+    repaint();
+}
+
+void GLWidget::set_iso_u_div_count(int value)
+{
+    _u_isoline_count = value;
+    _patch.GenerateVIsoLines(_u_isoline_count, 30);
+    if (_tl_enabled)
+        _patch.GetTL()->GenerateUIsoLines(_u_isoline_count, 30);
+    if (_t_enabled)
+        _patch.GetT()->GenerateUIsoLines(_u_isoline_count, 30);
+    if (_tr_enabled)
+        _patch.GetTR()->GenerateUIsoLines(_u_isoline_count, 30);
+    if (_r_enabled)
+        _patch.GetR()->GenerateUIsoLines(_u_isoline_count, 30);
+
+    if (_br_enabled)
+        _patch.GetBR()->GenerateUIsoLines(_u_isoline_count, 30);
+    if (_b_enabled)
+        _patch.GetB()->GenerateUIsoLines(_u_isoline_count, 30);
+    if (_bl_enabled)
+        _patch.GetBL()->GenerateUIsoLines(_u_isoline_count, 30);
+    if (_l_enabled)
+        _patch.GetL()->GenerateUIsoLines(_u_isoline_count, 30);
+    repaint();
+}
+
+void GLWidget::set_iso_v_div_count(int value)
+{
+    _v_isoline_count = value;
+    _patch.GenerateVIsoLines(_v_isoline_count, 30);
+    if (_tl_enabled)
+        _patch.GetTL()->GenerateVIsoLines(_v_isoline_count, 30);
+    if (_t_enabled)
+        _patch.GetT()->GenerateVIsoLines(_v_isoline_count, 30);
+    if (_tr_enabled)
+        _patch.GetTR()->GenerateVIsoLines(_v_isoline_count, 30);
+    if (_r_enabled)
+        _patch.GetR()->GenerateVIsoLines(_v_isoline_count, 30);
+
+    if (_br_enabled)
+        _patch.GetBR()->GenerateVIsoLines(_v_isoline_count, 30);
+    if (_b_enabled)
+        _patch.GetB()->GenerateVIsoLines(_v_isoline_count, 30);
+    if (_bl_enabled)
+        _patch.GetBL()->GenerateVIsoLines(_v_isoline_count, 30);
+    if (_l_enabled)
+        _patch.GetL()->GenerateVIsoLines(_v_isoline_count, 30);
+    repaint();
+}
+
+void GLWidget::toggle_iso_u_der(bool checked)
+{
+    _show_u_iso_derivates = checked;
+    repaint();
+}
+
+void GLWidget::toggle_iso_v_der(bool checked)
+{
+    _show_v_iso_derivates = checked;
+    repaint();
+}
+
+void GLWidget::toggle_surface(bool checked)
+{
+    _show_surface = checked;
+    repaint();
+}
+
+void GLWidget::set_shader(int index)
+{
+    switch (index)
+    {
+    case 0:
+        _shader.InstallShaders("Shaders/directional_light.vert",
+                               "Shaders/directional_light.frag",
+                               GL_TRUE);
+        break;
+    case 1:
+        _shader.InstallShaders("Shaders/toon.vert",
+                               "Shaders/toon.frag",
+                               GL_TRUE);
+        _shader.SetUniformVariable4f("default_outline_color", 1, 0, 0, 1);
+
+        break;
+    case 2:
+        _shader.InstallShaders("Shaders/two_sided_lighting.vert",
+                               "Shaders/two_sided_lighting.frag",
+                               GL_TRUE);
+        break;
+    }
+    _shader.Enable(GL_TRUE);
+    repaint();
 }

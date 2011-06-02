@@ -218,7 +218,7 @@ void ExtendDialog::setup_tl(bool l, bool t)
 
     ui->e_00->setText("-3 3 0");
 
-    ui->e_10->setText("-3 1 0");
+
 
     if (t)
     {
@@ -230,6 +230,18 @@ void ExtendDialog::setup_tl(bool l, bool t)
     else
     {
         ui->e_01->setText("-1 3 0");
+    }
+
+    if (l)
+    {
+        ui->e_10->setEnabled(false);
+        ui->e_12->setEnabled(false);
+        ui->e_30->setEnabled(false);
+        ui->e_32->setEnabled(false);
+    }
+    else
+    {
+        ui->e_10->setText("-3 1 0");
     }
 }
 

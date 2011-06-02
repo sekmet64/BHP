@@ -8,6 +8,10 @@
 #include "core/TriangulatedMeshes3.h"
 #include "core/Lights.h"
 #include "hermite/Hermite.h"
+#include "hermite/CubicHermiteIsoLine.h"
+#include <vector>
+#include "Shader/ShaderPrograms.h"
+#include "Core/Lights.h"
 
 class GLWidget: public QGLWidget
 {
@@ -29,10 +33,7 @@ private:
 
     cagd::HermitePatch _patch;
 
-    cagd::TriangulatedMesh3 *_before_interpolation, *_after_interpolation;
-
-
-    cagd::DirectionalLight *_dl;
+    cagd::TriangulatedMesh3 *_before_interpolation;
 
     bool    _show_derivatives;
 
@@ -55,6 +56,19 @@ private:
     bool    _b_enabled;
     bool    _bl_enabled;
     bool    _l_enabled;
+    bool    _show_u_iso_lines;
+    bool    _show_v_iso_lines;
+    bool    _show_u_iso_derivates;
+    bool    _show_v_iso_derivates;
+
+
+    bool    _show_surface;
+
+
+    GLuint _u_isoline_count;
+    GLuint _v_isoline_count;
+    cagd::ShaderProgram _shader;
+    cagd::DirectionalLight *_dl;
 
 public:
     // special and default constructor
@@ -90,4 +104,16 @@ public slots:
     void toggle_bl(bool checked);
     void toggle_l(bool checked);
 
+    void toggle_iso_u(bool checked);
+    void toggle_iso_v(bool checked);
+
+    void set_iso_u_div_count(int value);
+    void set_iso_v_div_count(int value);
+
+    void toggle_iso_u_der(bool checked);
+    void toggle_iso_v_der(bool checked);
+
+    void toggle_surface(bool checked);
+
+    void set_shader(int index);
 };

@@ -63,7 +63,18 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent)
     connect(_side_widget->bl_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_bl(bool)));
     connect(_side_widget->l_extend_btn, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_l(bool)));
 
+    connect(_side_widget->div_u_slider, SIGNAL(valueChanged(int)), _gl_widget, SLOT(set_iso_u_div_count(int)));
+    connect(_side_widget->div_v_slider, SIGNAL(valueChanged(int)), _gl_widget, SLOT(set_iso_v_div_count(int)));
 
+    connect(_side_widget->iso_u_check, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_iso_u(bool)));
+    connect(_side_widget->iso_v_check, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_iso_v(bool)));
+
+    connect(_side_widget->iso_der_u_check, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_iso_u_der(bool)));
+    connect(_side_widget->iso_der_v_check, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_iso_v_der(bool)));
+
+    connect(_side_widget->surface_check, SIGNAL(toggled(bool)), _gl_widget, SLOT(toggle_surface(bool)));
+
+    connect(_side_widget->_shader_combo, SIGNAL(currentIndexChanged(int)), _gl_widget, SLOT(set_shader(int)));
 }
 
 //--------------------------------

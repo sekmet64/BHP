@@ -1,6 +1,9 @@
 #include "Hermite.h"
+#include "hermite/CubicHermiteIsoLine.h"
+#include <iostream>
 
 using namespace cagd;
+using namespace std;
 
 HermitePatch::HermitePatch() : TensorProductSurface3(0.0, 1.0, 0.0, 1.0, 4, 4)
 {
@@ -469,4 +472,184 @@ void HermitePatch::DeleteL()
     _l->DeleteVertexBufferObjectsOfDerivatives();
     _l->DeleteVertexBufferObjectsOfData();
     delete _l;
+}
+GenericCurve3* HermitePatch::GenerateVIsoLine(GLdouble u_t, GLuint div_point_count, GLuint max_order_of_derivates, GLenum usage_flag)
+{
+
+
+
+
+
+    CubicHermiteIsoLine * arc = new CubicHermiteIsoLine(usage_flag);
+
+
+
+
+
+
+
+
+    RowMatrix<GLdouble> u_t_functionvalues;
+    arc->BlendingFunctionValues(u_t, u_t_functionvalues);
+
+
+
+
+    for (GLuint j=0; j<4; j++)
+    {
+        DCoordinate3 sum;
+        for (GLuint i=0; i<4; i++)
+
+            sum = sum + _data(i, j)*u_t_functionvalues(i);
+        (*arc)[j] = sum;
+    }
+
+
+
+
+
+    GenericCurve3* result = arc->GenerateImage(max_order_of_derivates, div_point_count, usage_flag);
+
+
+
+
+
+    delete arc; arc = 0;
+
+
+
+    return result;
+}
+
+GenericCurve3* HermitePatch::GenerateUIsoLine(GLdouble v_t, GLuint div_point_count, GLuint max_order_of_derivates, GLenum usage_flag)
+{
+
+
+    CubicHermiteIsoLine * arc = new CubicHermiteIsoLine(usage_flag);
+
+
+
+
+
+    RowMatrix<GLdouble> v_t_functionvalues;
+    arc->BlendingFunctionValues(v_t, v_t_functionvalues);
+
+
+
+
+    for (GLuint i=0; i<4; i++)
+    {
+        DCoordinate3 sum;
+        for (GLuint j=0; j<4; j++)
+            sum += _data(i, j)*v_t_functionvalues(j);
+        (*arc)[i] = sum;
+    }
+
+
+
+
+
+    GenericCurve3* result = arc->GenerateImage(max_order_of_derivates, div_point_count, usage_flag);
+
+
+
+
+
+    delete arc; arc = 0;
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return result;
+}
+
+GLvoid HermitePatch::GenerateUIsoLines(GLuint line_count, GLuint div_point_count, GLuint max_order_of_derivates, GLenum usage_flag)
+{
+
+
+
+    u_iso_lines_count = line_count;
+    u_iso_lines.clear();
+    u_iso_lines.resize(u_iso_lines_count);
+    for (GLuint i=0; i<u_iso_lines_count; ++i)
+    {
+        u_iso_lines[i] = this->GenerateUIsoLine((GLdouble) (i+1) / (u_iso_lines_count+1), div_point_count, max_order_of_derivates, usage_flag);
+        if (!u_iso_lines[i]->UpdateVertexBufferObjects())
+            cout << "vbo error" << endl;
+    }
+}
+
+GLvoid HermitePatch::GenerateVIsoLines(GLuint line_count, GLuint div_point_count, GLuint max_order_of_derivates, GLenum usage_flag)
+{
+
+
+
+    v_iso_lines_count = line_count;
+    v_iso_lines.clear();
+    v_iso_lines.resize(v_iso_lines_count);
+    for (GLuint i=0; i<v_iso_lines_count; ++i)
+    {
+        v_iso_lines[i] = this->GenerateVIsoLine((GLdouble) (i+1) / (v_iso_lines_count+1), div_point_count, max_order_of_derivates, usage_flag);
+        if (!v_iso_lines[i]->UpdateVertexBufferObjects())
+            cout << "vbo error" << endl;
+    }
+}
+
+GLvoid HermitePatch::RenderUIsoLines(GLuint order)
+{
+
+
+
+    glDisable(GL_LIGHTING);
+    glColor3f(0.1, 0.5, 0.9);
+    glPointSize(5.0);
+    glLineWidth(2.0);
+    for (GLuint i=0; i<u_iso_lines_count; ++i)
+    {
+        if (order == 0)
+            u_iso_lines[i]->RenderDerivatives(order, GL_LINE_STRIP);
+        else
+            u_iso_lines[i]->RenderDerivatives(order, GL_LINES);
+    }
+
+
+
+
+
+
+    glEnable(GL_LIGHTING);
+}
+
+GLvoid HermitePatch::RenderVIsoLines(GLuint order)
+{
+
+
+
+    glDisable(GL_LIGHTING);
+    glColor3f(0.1, 0.5, 0.9);
+    glPointSize(5.0);
+    glLineWidth(2.0);
+    for (GLuint i=0; i<v_iso_lines_count; ++i)
+    {
+        if (order == 0)
+            v_iso_lines[i]->RenderDerivatives(order, GL_LINE_STRIP);
+        else
+            v_iso_lines[i]->RenderDerivatives(order, GL_LINES);
+    }
+
+
+
+
+
+
+    glEnable(GL_LIGHTING);
 }
