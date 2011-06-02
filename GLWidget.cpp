@@ -5,6 +5,7 @@
 #include "Core/Exceptions.h"
 #include <QMessageBox>
 #include <QToolButton>
+#include <QWheelEvent>
 
 using namespace cagd;
 using namespace std;
@@ -1163,5 +1164,11 @@ void GLWidget::set_shader(int index)
         break;
     }
     _shader.Enable(GL_TRUE);
+    repaint();
+}
+
+void GLWidget::wheelEvent(QWheelEvent *event)
+{
+    _zoom *= event->delta() < 0 ? 0.9 : 1.1;
     repaint();
 }

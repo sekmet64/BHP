@@ -116,4 +116,6 @@ public slots:
     void toggle_surface(bool checked);
 
     void set_shader(int index);
+protected:
+    virtual void wheelEvent(QWheelEvent *event);
 };
