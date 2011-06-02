@@ -91,8 +91,8 @@ void GLWidget::initializeGL()
 
     glEnable(GL_POINT_SMOOTH);
     glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-    //glEnable(GL_LINE_SMOOTH);
-    //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
     glEnable(GL_POLYGON_SMOOTH);
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 
@@ -164,6 +164,7 @@ void GLWidget::initializeGL()
                                Color4(0.4,0.4,0.4,1),
                                Color4(0.8,0.8,0.8,1),
                                Color4(0,0,1,1));
+    _dl->Enable();
     glEnable(GL_LIGHTING);
     glEnable(GL_NORMALIZE);
     _shader.Enable(GL_TRUE);
