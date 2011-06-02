@@ -1,6 +1,7 @@
 #include "extenddialog.h"
 #include "ui_extenddialog.h"
 #include <sstream>
+#include <QToolButton>
 
 using namespace std;
 using namespace cagd;

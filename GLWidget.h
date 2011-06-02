@@ -33,7 +33,7 @@ private:
 
     cagd::HermitePatch _patch;
 
-    cagd::TriangulatedMesh3 *_before_interpolation;
+    cagd::TriangulatedMesh3 *_patch_mesh;
 
     bool    _show_derivatives;
 

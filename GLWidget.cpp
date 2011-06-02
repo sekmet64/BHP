@@ -4,6 +4,7 @@
 #include "extenddialog.h"
 #include "Core/Exceptions.h"
 #include <QMessageBox>
+#include <QToolButton>
 
 using namespace cagd;
 using namespace std;
@@ -27,22 +28,21 @@ GLWidget::GLWidget(QWidget *parent) :
     _show_u_iso_lines(false),
     _show_v_iso_lines(false),
 
-    _u_isoline_count(5),
-    _v_isoline_count(5),
-
     _show_u_iso_derivates(false),
     _show_v_iso_derivates(false),
 
-    _show_surface(true)
+    _show_surface(true),
+    _u_isoline_count(5),
+    _v_isoline_count(5)
 {
 }
 
 GLWidget::~GLWidget()
 {    
-    if (_before_interpolation)
+    if (_patch_mesh)
     {
-        delete _before_interpolation;
-        _before_interpolation = 0;
+        delete _patch_mesh;
+        _patch_mesh = 0;
     }
 }
 
@@ -88,6 +88,13 @@ void GLWidget::initializeGL()
 
     glewInit();
 
+    glEnable(GL_POINT_SMOOTH);
+    glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+    //glEnable(GL_LINE_SMOOTH);
+    //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_POLYGON_SMOOTH);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+
     _patch.SetData(0, 0, -1.0, 1.0, 0.0);
     _patch.SetData(0, 1, 1.0, 1.0, 0.0);
     _patch.SetData(0, 2, 0.0, 1.0, 1.0);
@@ -110,21 +117,17 @@ void GLWidget::initializeGL()
 
     _patch.UpdateVertexBufferObjectsOfDerivatives();
 
-	//initialize u_iso_lines
 
-
-
+    //initialize u_iso_lines
     _patch.GenerateUIsoLines(_u_isoline_count, 30);
 
     //initialize v_iso_lines
-
-
-
     _patch.GenerateVIsoLines(_v_isoline_count, 30);
-    _before_interpolation = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
 
-    if (_before_interpolation)
-        _before_interpolation->UpdateVertexBufferObjects();
+    _patch_mesh = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
+
+    if (_patch_mesh)
+        _patch_mesh->UpdateVertexBufferObjects();
 
     RowMatrix<GLdouble> u_knot_vector(4);
     u_knot_vector(0) = 0.0;
@@ -138,21 +141,7 @@ void GLWidget::initializeGL()
     v_knot_vector(2) = 2.0 / 3.0;
     v_knot_vector(3) = 1.0;
 
-//    Matrix<DCoordinate3> data_points_to_interpolate(4,4);
-//    for (GLuint row=0; row<4; ++row)
-//        for (GLuint column = 0; column < 4; ++column)
-//            _patch.GetData(row, column, data_points_to_interpolate(row, column));
-
-//    if (_patch.UpdateDataForInterpolation(u_knot_vector, v_knot_vector, data_points_to_interpolate))
-//    {
-//        _after_interpolation = _patch.GenerateImage(30, 30, GL_STATIC_DRAW);
-
-//        if (_after_interpolation)
-//            _after_interpolation->UpdateVertexBufferObjects();
-//    }
-
-
-	try
+    try
     {
         // directional ligth
         if (!_shader.InstallShaders("Shaders/directional_light.vert",
@@ -162,10 +151,11 @@ void GLWidget::initializeGL()
             QMessageBox::critical(this, "Shader error",
                                   "Error installing shaders");
         }
-	}
-	catch (Exception &e)
-	{
-	}
+    }
+    catch (Exception &e)
+    {
+    }
+
 
 
 
@@ -198,64 +188,58 @@ void GLWidget::paintGL()
 
         glScaled(_zoom, _zoom, _zoom);
 
-        if (_before_interpolation)
+        if (_patch_mesh)
         {
             if (_show_surface)
             {
                 MatFBRuby.Apply();
-                _before_interpolation->Render();
+                _patch_mesh->Render();
+
+                MatFBSilver.Apply();
+
+                if (_tl_enabled)
+                    _tl_mesh->Render();
+                if (_t_enabled)
+                    _t_mesh->Render();
+                if (_tr_enabled)
+                    _tr_mesh->Render();
+                if (_r_enabled)
+                    _r_mesh->Render();
+                if (_br_enabled)
+                    _br_mesh->Render();
+                if (_b_enabled)
+                    _b_mesh->Render();
+                if (_bl_enabled)
+                    _bl_mesh->Render();
+                if (_l_enabled)
+                    _l_mesh->Render();
             }
 
-            MatFBSilver.Apply();
-            if (_tl_enabled)
-            {
-                _tl_mesh->Render();
-            }
-            if (_t_enabled)
-            {
-                _t_mesh->Render();
-            }
-            if (_tr_enabled)
-            {
-                _tr_mesh->Render();
-            }
-            if (_r_enabled)
-            {
-                _r_mesh->Render();
-            }
 
-            if (_br_enabled)
-            {
-                _br_mesh->Render();
-            }
-            if (_b_enabled)
-            {
-                _b_mesh->Render();
-            }
-            if (_bl_enabled)
-            {
-                _bl_mesh->Render();
-            }
-            if (_l_enabled)
-            {
-                _l_mesh->Render();
-            }
-			//rendering u_iso_lines
+
+            MatFBEmerald.Apply();
+
+            //rendering u_iso_lines
             if (_show_u_iso_lines)
             {
                 _patch.RenderUIsoLines(0);
                 if (_tl_enabled)
-                {
-
                     _patch.GetTL()->RenderUIsoLines(0);
+                if (_t_enabled)
+                    _patch.GetT()->RenderUIsoLines(0);
+                if (_tr_enabled)
+                    _patch.GetTR()->RenderUIsoLines(0);
+                if (_r_enabled)
+                    _patch.GetR()->RenderUIsoLines(0);
 
-                }
-            }
-
-            if (_show_u_iso_derivates)
-            {
-                _patch.RenderUIsoLines(1);
-
+                if (_br_enabled)
+                    _patch.GetBR()->RenderUIsoLines(0);
+                if (_b_enabled)
+                    _patch.GetB()->RenderUIsoLines(0);
+                if (_bl_enabled)
+                    _patch.GetBL()->RenderUIsoLines(0);
+                if (_l_enabled)
+                    _patch.GetL()->RenderUIsoLines(0);
             }
 
             //rendering v_iso_lines
@@ -263,15 +247,73 @@ void GLWidget::paintGL()
             {
                 _patch.RenderVIsoLines(0);
                 if (_tl_enabled)
-                {
                     _patch.GetTL()->RenderVIsoLines(0);
-                }
+                if (_t_enabled)
+                    _patch.GetT()->RenderVIsoLines(0);
+                if (_tr_enabled)
+                    _patch.GetTR()->RenderVIsoLines(0);
+                if (_r_enabled)
+                    _patch.GetR()->RenderVIsoLines(0);
+
+                if (_br_enabled)
+                    _patch.GetBR()->RenderVIsoLines(0);
+                if (_b_enabled)
+                    _patch.GetB()->RenderVIsoLines(0);
+                if (_bl_enabled)
+                    _patch.GetBL()->RenderVIsoLines(0);
+                if (_l_enabled)
+                    _patch.GetL()->RenderVIsoLines(0);
             }
 
-            if (_show_v_iso_derivates)
-                _patch.RenderVIsoLines(1);
+            MatFBBrass.Apply();
 
-			// rendering derivatives
+            if (_show_u_iso_derivates)
+            {
+                _patch.RenderUIsoLines(1);
+                if (_tl_enabled)
+                    _patch.GetTL()->RenderUIsoLines(1);
+                if (_t_enabled)
+                    _patch.GetT()->RenderUIsoLines(1);
+                if (_tr_enabled)
+                    _patch.GetTR()->RenderUIsoLines(1);
+                if (_r_enabled)
+                    _patch.GetR()->RenderUIsoLines(1);
+
+                if (_br_enabled)
+                    _patch.GetBR()->RenderUIsoLines(1);
+                if (_b_enabled)
+                    _patch.GetB()->RenderUIsoLines(1);
+                if (_bl_enabled)
+                    _patch.GetBL()->RenderUIsoLines(1);
+                if (_l_enabled)
+                    _patch.GetL()->RenderUIsoLines(1);
+            }
+
+            MatFBGold.Apply();
+
+            if (_show_v_iso_derivates)
+            {
+                _patch.RenderVIsoLines(1);
+                if (_tl_enabled)
+                    _patch.GetTL()->RenderVIsoLines(1);
+                if (_t_enabled)
+                    _patch.GetT()->RenderVIsoLines(1);
+                if (_tr_enabled)
+                    _patch.GetTR()->RenderVIsoLines(1);
+                if (_r_enabled)
+                    _patch.GetR()->RenderVIsoLines(1);
+
+                if (_br_enabled)
+                    _patch.GetBR()->RenderVIsoLines(1);
+                if (_b_enabled)
+                    _patch.GetB()->RenderVIsoLines(1);
+                if (_bl_enabled)
+                    _patch.GetBL()->RenderVIsoLines(1);
+                if (_l_enabled)
+                    _patch.GetL()->RenderVIsoLines(1);
+            }
+
+            // rendering derivatives
             if (_show_derivatives)
             {
                 glDisable(GL_LIGHTING);
@@ -426,6 +468,15 @@ void GLWidget::toggle_tl(bool checked)
             t->GetData(2, 2, d_23);
         }
 
+        if (_l_enabled)
+        {
+            HermitePatch *l = _patch.GetL();
+            l->GetData(0, 0, d_10);
+            l->GetData(0, 2, d_12);
+            l->GetData(2, 0, d_30);
+            l->GetData(2, 2, d_32);
+        }
+
         ExtendDialog *dialog = new ExtendDialog(
                     d_00, d_01, d_02, d_03,
                     d_10, d_11, d_12, d_13,
@@ -450,14 +501,21 @@ void GLWidget::toggle_tl(bool checked)
             _tl_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _tl_mesh->DeleteVertexBufferObjects();
-        delete _tl_mesh;
-        _patch.DeleteTL();
-        _tl_enabled = false;
-        repaint();
+        if (_tl_enabled)
+        {
+            _tl_mesh->DeleteVertexBufferObjects();
+            delete _tl_mesh;
+            _patch.DeleteTL();
+            _tl_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -516,19 +574,28 @@ void GLWidget::toggle_t(bool checked)
             HermitePatch* t = _patch.GetT();
 
             t->UpdateVertexBufferObjectsOfDerivatives();
+            t->GenerateUIsoLines(_u_isoline_count, 30);
+            t->GenerateVIsoLines(_v_isoline_count, 30);
             _t_mesh = t->GenerateImage(30, 30, GL_STATIC_DRAW);
             _t_mesh->UpdateVertexBufferObjects();
             _t_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _t_mesh->DeleteVertexBufferObjects();
-        delete _t_mesh;
-        _patch.DeleteT();
-        _t_enabled = false;
-        repaint();
+        if (_t_enabled)
+        {
+            _t_mesh->DeleteVertexBufferObjects();
+            delete _t_mesh;
+            _patch.DeleteT();
+            _t_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -582,19 +649,28 @@ void GLWidget::toggle_tr(bool checked)
             HermitePatch* tr = _patch.GetTR();
 
             tr->UpdateVertexBufferObjectsOfDerivatives();
+            tr->GenerateUIsoLines(_u_isoline_count, 30);
+            tr->GenerateVIsoLines(_v_isoline_count, 30);
             _tr_mesh = tr->GenerateImage(30, 30, GL_STATIC_DRAW);
             _tr_mesh->UpdateVertexBufferObjects();
             _tr_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _tr_mesh->DeleteVertexBufferObjects();
-        delete _tr_mesh;
-        _patch.DeleteTR();
-        _tr_enabled = false;
-        repaint();
+        if (_tr_enabled)
+        {
+            _tr_mesh->DeleteVertexBufferObjects();
+            delete _tr_mesh;
+            _patch.DeleteTR();
+            _tr_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -653,19 +729,28 @@ void GLWidget::toggle_r(bool checked)
             HermitePatch* r = _patch.GetR();
 
             r->UpdateVertexBufferObjectsOfDerivatives();
+            r->GenerateUIsoLines(_u_isoline_count, 30);
+            r->GenerateVIsoLines(_v_isoline_count, 30);
             _r_mesh = r->GenerateImage(30, 30, GL_STATIC_DRAW);
             _r_mesh->UpdateVertexBufferObjects();
             _r_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _r_mesh->DeleteVertexBufferObjects();
-        delete _r_mesh;
-        _patch.DeleteR();
-        _r_enabled = false;
-        repaint();
+        if (_r_enabled)
+        {
+            _r_mesh->DeleteVertexBufferObjects();
+            delete _r_mesh;
+            _patch.DeleteR();
+            _r_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -719,19 +804,28 @@ void GLWidget::toggle_br(bool checked)
             HermitePatch* br = _patch.GetBR();
 
             br->UpdateVertexBufferObjectsOfDerivatives();
+            br->GenerateUIsoLines(_u_isoline_count, 30);
+            br->GenerateVIsoLines(_v_isoline_count, 30);
             _br_mesh = br->GenerateImage(30, 30, GL_STATIC_DRAW);
             _br_mesh->UpdateVertexBufferObjects();
             _br_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _br_mesh->DeleteVertexBufferObjects();
-        delete _br_mesh;
-        _patch.DeleteBR();
-        _br_enabled = false;
-        repaint();
+        if (_br_enabled)
+        {
+            _br_mesh->DeleteVertexBufferObjects();
+            delete _br_mesh;
+            _patch.DeleteBR();
+            _br_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -789,19 +883,28 @@ void GLWidget::toggle_b(bool checked)
             HermitePatch* b = _patch.GetB();
 
             b->UpdateVertexBufferObjectsOfDerivatives();
+            b->GenerateUIsoLines(_u_isoline_count, 30);
+            b->GenerateVIsoLines(_v_isoline_count, 30);
             _b_mesh = b->GenerateImage(30, 30, GL_STATIC_DRAW);
             _b_mesh->UpdateVertexBufferObjects();
             _b_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _b_mesh->DeleteVertexBufferObjects();
-        delete _b_mesh;
-        _patch.DeleteB();
-        _b_enabled = false;
-        repaint();
+        if (_b_enabled)
+        {
+            _b_mesh->DeleteVertexBufferObjects();
+            delete _b_mesh;
+            _patch.DeleteB();
+            _b_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -854,19 +957,28 @@ void GLWidget::toggle_bl(bool checked)
             HermitePatch* bl = _patch.GetBL();
 
             bl->UpdateVertexBufferObjectsOfDerivatives();
+            bl->GenerateUIsoLines(_u_isoline_count, 30);
+            bl->GenerateVIsoLines(_v_isoline_count, 30);
             _bl_mesh = bl->GenerateImage(30, 30, GL_STATIC_DRAW);
             _bl_mesh->UpdateVertexBufferObjects();
             _bl_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _bl_mesh->DeleteVertexBufferObjects();
-        delete _bl_mesh;
-        _patch.DeleteBL();
-        _bl_enabled = false;
-        repaint();
+        if (_bl_enabled)
+        {
+            _bl_mesh->DeleteVertexBufferObjects();
+            delete _bl_mesh;
+            _patch.DeleteBL();
+            _bl_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -924,19 +1036,28 @@ void GLWidget::toggle_l(bool checked)
             HermitePatch* l = _patch.GetL();
 
             l->UpdateVertexBufferObjectsOfDerivatives();
+            l->GenerateUIsoLines(_u_isoline_count, 30);
+            l->GenerateVIsoLines(_v_isoline_count, 30);
             _l_mesh = l->GenerateImage(30, 30, GL_STATIC_DRAW);
             _l_mesh->UpdateVertexBufferObjects();
             _l_enabled = true;
             repaint();
         }
+        else
+        {
+            dynamic_cast<QToolButton*>(sender())->setChecked(false);
+        }
     }
     else
     {
-        _l_mesh->DeleteVertexBufferObjects();
-        delete _l_mesh;
-        _patch.DeleteL();
-        _l_enabled = false;
-        repaint();
+        if (_l_enabled)
+        {
+            _l_mesh->DeleteVertexBufferObjects();
+            delete _l_mesh;
+            _patch.DeleteL();
+            _l_enabled = false;
+            repaint();
+        }
     }
 }
 
@@ -956,7 +1077,7 @@ void GLWidget::toggle_iso_v(bool checked)
 void GLWidget::set_iso_u_div_count(int value)
 {
     _u_isoline_count = value;
-    _patch.GenerateVIsoLines(_u_isoline_count, 30);
+    _patch.GenerateUIsoLines(_u_isoline_count, 30);
     if (_tl_enabled)
         _patch.GetTL()->GenerateUIsoLines(_u_isoline_count, 30);
     if (_t_enabled)

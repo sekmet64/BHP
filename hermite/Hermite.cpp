@@ -1,6 +1,7 @@
 #include "Hermite.h"
 #include "hermite/CubicHermiteIsoLine.h"
 #include <iostream>
+#include "Core/Materials.h"
 
 using namespace cagd;
 using namespace std;
@@ -238,18 +239,8 @@ GLboolean HermitePatch::UpdateVertexBufferObjectsOfDerivatives()
 GLboolean HermitePatch::RenderDerivatives()
 {
 
-//GL_COLOR_ARRAY
 
-
-    glBegin(GL_POINTS);
-        glColor3f(0.94f, 0.16f, 0.16f);
-//        glPointSize(7.0f);
-
-//        DCoordinate3 c = _data(0, 0) + _data(0, 2);
-//        glVertex3f(c.x(), c.y(), c.z());
-
-    glEnd();
-
+    MatFBEmerald.Apply();
     glEnableClientState(GL_VERTEX_ARRAY);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo_derivatives);
@@ -261,9 +252,7 @@ GLboolean HermitePatch::RenderDerivatives()
     glDisableClientState(GL_VERTEX_ARRAY);
 
 
-    glBegin(GL_POINTS);
-        glColor3f(0.45f, 0.82f, 0.09f);
-    glEnd();
+    MatFBPearl.Apply();
 
     glEnableClientState(GL_VERTEX_ARRAY);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
@@ -275,9 +264,7 @@ GLboolean HermitePatch::RenderDerivatives()
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDisableClientState(GL_VERTEX_ARRAY);
 
-    glBegin(GL_POINTS);
-        glColor3f(1.0f, 1.0f, 1.0f);
-    glEnd();
+    MatFBRuby.Apply();
 
     glEnableClientState(GL_VERTEX_ARRAY);
         glBindBuffer(GL_ARRAY_BUFFER, _vbo_derivatives);
@@ -295,7 +282,6 @@ GLboolean HermitePatch::RenderDerivatives()
 
 HermitePatch::~HermitePatch()
 {
-    //DeleteVertexBufferObjectsOfData();
     DeleteVertexBufferObjectsOfDerivatives();
 }
 
